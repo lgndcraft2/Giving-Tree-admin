@@ -37,6 +37,7 @@ const WishesTable: React.FC<WishesTableProps> = ({ wishes }) => {
                       className="bg-green-600 h-2.5 rounded-full" 
                       style={{ width: `${Math.min(progress, 100)}%` }}
                     ></div>
+                    <div className="text-xs text-gray-600 mt-1">${wish.currentDonations} / ${wish.requiredDonations}</div>
                   </div>
                 </td>
                 <td className="py-4 px-4 text-sm text-gray-900">{wish.charityName}</td>

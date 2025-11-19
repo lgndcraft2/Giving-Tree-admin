@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trash, Edit } from 'lucide-react';
+import { Trash, Edit, Check, X } from 'lucide-react';
 
 
 interface Charity {
@@ -13,9 +13,10 @@ interface CharitiesTableProps {
   charities: Charity[];
   onToggleStatus: (id: number) => void;
   onEdit: (charity: Charity) => void;
+  onDelete: (id: number) => void;
 }
 
-const CharitiesTable: React.FC<CharitiesTableProps> = ({ charities, onToggleStatus, onEdit }) => {
+const CharitiesTable: React.FC<CharitiesTableProps> = ({ charities, onToggleStatus, onEdit, onDelete }) => {
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
@@ -53,15 +54,15 @@ const CharitiesTable: React.FC<CharitiesTableProps> = ({ charities, onToggleStat
                   </button>
                   <button
                     onClick={() => onToggleStatus(charity.id)}
-                    className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+                    className="px-3 py-2 text-sm font-medium text-white bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                   >
-                    {charity.status === 'active' ? 'Deactivate' : 'Activate'}
+                    {charity.status === 'active' ? <X className='text-red-600 w-4 h-4' /> : <Check className='text-green-600 w-4 h-4' />}
                   </button>
                   <button
                     onClick={() => onDelete(charity.id)}
-                    className="px-3 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                    className="px-3 py-2 text-sm font-medium text-white bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                   >
-                    <Trash className="w-4 h-4" />
+                    <Trash className="w-4 h-4 text-red-600" />
                   </button>
                 </div>
               </td>
