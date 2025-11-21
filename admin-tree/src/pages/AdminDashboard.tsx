@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Heart, BarChart3, TrendingUp, LogOut } from "lucide-react";
 import StatCard from "../components/StatCard";
 import TabButton from "../components/TabButton";
@@ -41,13 +41,29 @@ const AdminDashboard: React.FC = () => {
   >("charities");
   const [editingCharity, setEditingCharity] = useState<Charity | null>(null);
 
-  // Mock data
-  const [charities, setCharities] = useState<Charity[]>([
-    { id: 1, name: "Hope Foundation", wishes: 12, status: "active" },
-    { id: 2, name: "Children's Relief Fund", wishes: 8, status: "active" },
-    { id: 3, name: "Education For All", wishes: 15, status: "inactive" },
-    { id: 4, name: "Medical Aid Society", wishes: 6, status: "active" },
-  ]);
+  const [charities, setCharities] = useState<Charity[]>([]);
+
+  useEffect(() => {
+    // Fetch charities from backend API
+    const fetchCharities = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:5000/getters/charities-admin', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        const data = await response.json();
+        if (data.success) {
+          setCharities(data.charities);
+        }
+      } catch (error) {
+        console.error('Error fetching charities:', error);
+      }
+    };
+
+    fetchCharities();
+  }, []);
 
   const wishes: Wish[] = [
     {

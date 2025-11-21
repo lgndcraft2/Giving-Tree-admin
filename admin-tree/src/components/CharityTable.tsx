@@ -5,8 +5,8 @@ import { Trash, Edit, Check, X } from 'lucide-react';
 interface Charity {
   id: number;
   name: string;
-  wishes: number;
-  status: 'active' | 'inactive';
+  wish_length: number;
+  active: boolean;
 }
 
 interface CharitiesTableProps {
@@ -34,14 +34,14 @@ const CharitiesTable: React.FC<CharitiesTableProps> = ({ charities, onToggleStat
             <tr key={charity.id} className="border-b border-gray-100 hover:bg-gray-50">
               <td className="py-4 px-4 text-sm text-gray-900">{index + 1}</td>
               <td className="py-4 px-4 text-sm text-gray-900 font-medium">{charity.name}</td>
-              <td className="py-4 px-4 text-sm text-gray-900">{charity.wishes}</td>
+              <td className="py-4 px-4 text-sm text-gray-900">{charity.wish_length}</td>
               <td className="py-4 px-4">
                 <span className={`inline-flex items-center px-3 py-1 text-xs font-medium ${
-                  charity.status === 'active' 
+                  charity.active
                     ? 'text-green-700' 
                     : 'text-red-700'
                 }`}>
-                  {charity.status.toUpperCase()}
+                  {charity.active  ? 'Active' : 'Inactive'}
                 </span>
               </td>
               <td className="py-4 px-4">
@@ -56,7 +56,7 @@ const CharitiesTable: React.FC<CharitiesTableProps> = ({ charities, onToggleStat
                     onClick={() => onToggleStatus(charity.id)}
                     className="px-3 py-2 text-sm font-medium text-white bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                   >
-                    {charity.status === 'active' ? <X className='text-red-600 w-4 h-4' /> : <Check className='text-green-600 w-4 h-4' />}
+                    {charity.active ? <X className='text-red-600 w-4 h-4' /> : <Check className='text-green-600 w-4 h-4' />}
                   </button>
                   <button
                     onClick={() => onDelete(charity.id)}

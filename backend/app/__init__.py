@@ -14,7 +14,7 @@ def create_app(config_name):
     db.init_app(app)
     jwt.init_app(app)
     migrate.init_app(app, db)
-    CORS(app)
+    CORS(app, resources={r"/*": {"origins": "*"}})
     bcrypt.init_app(app)
 
     # 3. Register Blueprints
