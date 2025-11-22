@@ -22,6 +22,10 @@ interface EditCharityModalProps {
 }
 
 const EditCharityModal: React.FC<EditCharityModalProps> = ({ charity, wishes, onClose, onSave }) => {
+  const MIN_WISHES = 3; 
+  const MAX_WISHES = 5;
+
+  const [error, setError] = useState<string | null>(null); 
   const [formData, setFormData] = useState<CharityForm>({
     name: charity.name,
     description: charity.description || '',
@@ -45,36 +49,81 @@ const EditCharityModal: React.FC<EditCharityModalProps> = ({ charity, wishes, on
     setFormData({ ...formData, [field]: value });
   };
 
-  const handleWishChange = (index: number, field: keyof Wish, value: string | number) => {
+  const handleWishChange = (index: number, field: keyof Wish | 'title' | 'description', value: string | number) => {
     const updatedWishes = [...formData.wishes];
-    updatedWishes[index] = { ...updatedWishes[index], [field]: value };
+    const numericValue = typeof value === 'string' ? Number(value) : value;
+
+    // Update the field
+    updatedWishes[index] = { ...updatedWishes[index], [field]: numericValue };
     
+    // Auto-calculate total_price 
     if (field === 'quantity' || field === 'unit_price') {
-      const quantity = field === 'quantity' ? Number(value) : updatedWishes[index].quantity;
-      const unitPrice = field === 'unit_price' ? Number(value) : updatedWishes[index].unit_price;
-      updatedWishes[index].total_price = quantity * unitPrice;
+      // Use the updated values, defaulting to 0 if NaN
+      const quantity = updatedWishes[index].quantity || 0;
+      const unitPrice = updatedWishes[index].unit_price || 0;
+      
+      // Ensure calculation is financially sound using toFixed(2)
+      const total = quantity * unitPrice;
+      updatedWishes[index].total_price = Number(total.toFixed(2));
     }
     
     setFormData({ ...formData, wishes: updatedWishes });
   };
 
   const addWishItem = () => {
+    setError(null); // Clear previous errors
+    if (formData.wishes.length >= MAX_WISHES) {
+        setError(`Maximum of ${MAX_WISHES} wishes allowed.`);
+        return;
+    }
     setFormData({
-      ...formData,
-      wishes: [...formData.wishes, { title: '', description: '', quantity: 0, unit_price: 0, total_price: 0 }]
+        ...formData,
+        wishes: [...formData.wishes, { title: '', description: '', quantity: 0, unit_price: 0, total_price: 0 }]
     });
   };
 
   const removeWishItem = (index: number) => {
-    if (formData.wishes.length > 1) {
-      const updatedWishes = formData.wishes.filter((_, i) => i !== index);
-      setFormData({ ...formData, wishes: updatedWishes });
+    setError(null); // Clear previous errors
+    if (formData.wishes.length <= MIN_WISHES) {
+        setError(`Minimum of ${MIN_WISHES} wishes required.`);
+        return;
     }
+    const updatedWishes = formData.wishes.filter((_, i) => i !== index);
+    setFormData({ ...formData, wishes: updatedWishes });
+  };
+
+  const validateForm = (): boolean => {
+    setError(null);
+    const wishCount = formData.wishes.length;
+
+    // Check wishes count
+    if (wishCount < MIN_WISHES || wishCount > MAX_WISHES) {
+        setError(`A charity must have between ${MIN_WISHES} and ${MAX_WISHES} wishes.`);
+        return false;
+    }
+
+    // Validate data integrity for each wish
+    for (let i = 0; i < formData.wishes.length; i++) {
+        const wish = formData.wishes[i];
+        if (!wish.title.trim() || !wish.description.trim()) {
+            setError(`Wish ${i + 1}: Title and description are required.`);
+            return false;
+        }
+        if (wish.quantity <= 0 || wish.unit_price <= 0) {
+            setError(`Wish ${i + 1}: Quantity and Unit Price must be greater than 0.`);
+            return false;
+        }
+    }
+
+    return true;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave(charity.id, formData);
+      e.preventDefault();
+      if (validateForm()) {
+          onSave(charity.id, formData);
+          // Do not close the modal here; it should be closed after a successful API save
+      }
   };
 
   return (
