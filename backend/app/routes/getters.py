@@ -31,6 +31,10 @@ def get_charities_admin():
     charities_list = [{
         'id': charity.id,
         'name': charity.name,
+        'description': charity.description,
+        'website': charity.website,
+        'logo_url': charity.logo_url,
+        'image_url': charity.image_url,
         'active': charity.active,
         'wish_length': charity.wish_length,
         'created_at': charity.created_at
@@ -38,17 +42,22 @@ def get_charities_admin():
     return jsonify({'success': True, 'charities': charities_list}), 200
 
 @getters_bp.route('/wishes', methods=['GET'])
-@jwt_required()
 def get_wishes():
     wishes = Wishes.query.all()
+    for wish in wishes:
+        my_charity = Charities.query.filter_by(id=wish.charity_id).first()
+        wish.charity_name = my_charity.name if my_charity else "Unknown Charity"
+        wish.total_prize = wish.unit_price * wish.quantity
+
     wishes_list = [{
         'id': wish.id,
-        'charity_id': wish.charity_id,
         'name': wish.name,
         'description': wish.description,
         'unit_price': wish.unit_price,
         'quantity': wish.quantity,
-        'total_price': wish.total_price,
+        'current_price': wish.current_price,
+        'total_price': wish.total_prize,
+        'charity_name': wish.charity_name,
         'fulfilled': wish.fulfilled,
         'created_at': wish.created_at
     } for wish in wishes]

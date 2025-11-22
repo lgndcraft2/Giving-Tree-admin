@@ -1,8 +1,8 @@
-"""Initial schema setup
+"""Okayyyyyyyyyyy
 
-Revision ID: 2a7936aa0971
+Revision ID: 420524af979b
 Revises: 
-Create Date: 2025-11-21 21:05:56.173609
+Create Date: 2025-11-22 12:35:00.461621
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '2a7936aa0971'
+revision = '420524af979b'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -47,6 +47,7 @@ def upgrade():
     sa.Column('description', sa.Text(), nullable=True),
     sa.Column('unit_price', sa.Float(), nullable=False),
     sa.Column('quantity', sa.Integer(), nullable=False),
+    sa.Column('current_price', sa.Float(), nullable=True),
     sa.Column('total_price', sa.Float(), nullable=False),
     sa.Column('fulfilled', sa.Boolean(), nullable=True),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),

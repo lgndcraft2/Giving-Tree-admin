@@ -13,16 +13,24 @@ import EmptyPlaceholder from "../components/EmptyPlaceholder";
 interface Charity {
   id: number;
   name: string;
-  wishes: number;
-  status: "active" | "inactive";
+  description?: string;
+  website?: string;
+  logo_url?: string;
+  image_url?: string;
+  wish_length: number;
+  status: boolean;
 }
 
 interface Wish {
   id: number;
   title: string;
+  description: string;
+  unitPrice: number;
+  quantity: number;
   currentDonations: number;
   requiredDonations: number;
   charityName: string;
+  fulfilled: boolean;
 }
 
 interface Donation {
@@ -40,8 +48,11 @@ const AdminDashboard: React.FC = () => {
     "charities" | "wishes" | "donations" | "add-charity"
   >("charities");
   const [editingCharity, setEditingCharity] = useState<Charity | null>(null);
-
   const [charities, setCharities] = useState<Charity[]>([]);
+  const [wishes, setWishes] = useState<Wish[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<number | null>(null); // To disable a specific button
 
   useEffect(() => {
     // Fetch charities from backend API
@@ -62,39 +73,27 @@ const AdminDashboard: React.FC = () => {
       }
     };
 
-    fetchCharities();
-  }, []);
+    // Fetch wishes from backend API
+    const fetchWishes = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:5000/getters/wishes', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        const data = await response.json();
+        if (data.success) {
+          setWishes(data.wishes);
+        }
+      } catch (error) {
+        console.error('Error fetching wishes:', error);
+      }
+    };
 
-  const wishes: Wish[] = [
-    {
-      id: 1,
-      title: "School Supplies for 100 Students",
-      currentDonations: 7500,
-      requiredDonations: 10000,
-      charityName: "Education For All",
-    },
-    {
-      id: 2,
-      title: "Winter Clothing Drive",
-      currentDonations: 3200,
-      requiredDonations: 5000,
-      charityName: "Hope Foundation",
-    },
-    {
-      id: 3,
-      title: "Medical Equipment Fund",
-      currentDonations: 15000,
-      requiredDonations: 20000,
-      charityName: "Medical Aid Society",
-    },
-    {
-      id: 4,
-      title: "Food Security Program",
-      currentDonations: 4500,
-      requiredDonations: 8000,
-      charityName: "Children's Relief Fund",
-    },
-  ];
+    fetchCharities();
+    fetchWishes();
+  }, []);
 
   const donations: Donation[] = [
     {
@@ -136,22 +135,68 @@ const AdminDashboard: React.FC = () => {
   ];
 
   const activeCharitiesCount = charities.filter(
-    (c) => c.status === "active"
+    (c) => c.active
   ).length;
   const totalCharitiesCount = charities.length;
   const totalDonations = donations.reduce((sum, d) => sum + d.amount, 0);
 
-  const toggleCharityStatus = (id: number) => {
-    setCharities(
-      charities.map((charity) =>
-        charity.id === id
-          ? {
-              ...charity,
-              status: charity.status === "active" ? "inactive" : "active",
-            }
-          : charity
-      )
-    );
+  const toggleCharityStatus = async (id: number) => {
+    setError(null);
+    setTogglingId(id); // Disable the specific button
+    
+    // 1. Find the charity in local state
+    const charityToToggle = charities.find(c => c.id === id);
+    if (!charityToToggle) {
+        setError("Charity not found in local state.");
+        setTogglingId(null); // Re-enable the button
+        return;
+    }
+
+    // const token = getAuthToken();
+    // if (!token) {
+    //     setError("Authentication token missing.");
+    //     setIsLoading(false);
+    //     return;
+    // }
+
+    try {
+        // 2. Perform the API call (PUT request)
+        const response = await fetch(`http://127.0.0.1:5000/changers/charity/${id}/toggle-status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                //'Authorization': `Bearer ${token}`, // Pass the JWT token
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || data.success === false) {
+            // Handle HTTP errors or backend application errors
+            throw new Error(data.message || `Failed to update charity status. Status: ${response.status}`);
+        }
+
+        // 3. Local State Update (ONLY if API call succeeded)
+        setCharities(
+            charities.map((charity) =>
+                charity.id === id
+                    ? {
+                        ...charity,
+                        // Toggle the 'active' boolean property to its new state
+                        active: !charity.active, 
+                      }
+                    : charity
+            )
+        );
+
+    } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred during API call.';
+        setError(errorMessage);
+        console.error("Toggle Error:", err);
+    } finally {
+        setIsLoading(false);
+        setTogglingId(null); // Re-enable the button
+    }
   };
 
   const handleCharitySubmit = (charityData: CharityForm) => {
@@ -274,6 +319,8 @@ const AdminDashboard: React.FC = () => {
                   onToggleStatus={toggleCharityStatus}
                   onEdit={handleEditCharity}
                   onDelete={handleDeleteCharity}
+                  isToggling={isLoading}
+                  togglingId={togglingId}
                 />
               ) : (
                 <EmptyPlaceholder />
@@ -299,6 +346,7 @@ const AdminDashboard: React.FC = () => {
       {editingCharity && (
         <EditCharityModal
           charity={editingCharity}
+          wishes={wishes}
           onClose={() => setEditingCharity(null)}
           onSave={handleSaveCharity}
         />

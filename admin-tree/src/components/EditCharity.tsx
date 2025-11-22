@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
-import type { CharityForm, WishItem } from './AddCharity';
+import type { CharityForm } from './AddCharity';
+import type { Wish } from "./WishTable";
 
 interface Charity {
   id: number;
@@ -9,31 +10,32 @@ interface Charity {
   website?: string;
   logo_url?: string;
   image_url?: string;
-  wishes: number;
-  status: 'active' | 'inactive';
+  wish_length: number;
+  status: boolean;
 }
 
 interface EditCharityModalProps {
   charity: Charity;
+  wishes: Wish[];
   onClose: () => void;
   onSave: (id: number, data: CharityForm) => void;
 }
 
-const EditCharityModal: React.FC<EditCharityModalProps> = ({ charity, onClose, onSave }) => {
+const EditCharityModal: React.FC<EditCharityModalProps> = ({ charity, wishes, onClose, onSave }) => {
   const [formData, setFormData] = useState<CharityForm>({
     name: charity.name,
     description: charity.description || '',
     website: charity.website || '',
     logo_url: charity.logo_url || '',
     image_url: charity.image_url || '',
-    wishes: [{ title: '', description: '', quantity: 0, unit_price: 0, total_price: 0 }]
+    wishes: wishes.map((wish, wish.id) => ({ id: wish.id, title: '', description: '', quantity: 0, unit_price: 0, total_price: 0 }));
   });
 
   const handleInputChange = (field: keyof Omit<CharityForm, 'wishes'>, value: string) => {
     setFormData({ ...formData, [field]: value });
   };
 
-  const handleWishChange = (index: number, field: keyof WishItem, value: string | number) => {
+  const handleWishChange = (index: number, field: keyof Wish, value: string | number) => {
     const updatedWishes = [...formData.wishes];
     updatedWishes[index] = { ...updatedWishes[index], [field]: value };
     

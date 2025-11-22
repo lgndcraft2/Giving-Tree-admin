@@ -36,6 +36,7 @@ class Wishes(db.Model):
     description = db.Column(db.Text, nullable=True)
     unit_price = db.Column(db.Float, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
+    current_price = db.Column(db.Float, default=0.0)
     total_price = db.Column(db.Float, nullable=False)
     fulfilled = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())

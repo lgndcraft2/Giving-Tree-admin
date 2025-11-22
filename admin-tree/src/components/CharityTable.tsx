@@ -14,9 +14,11 @@ interface CharitiesTableProps {
   onToggleStatus: (id: number) => void;
   onEdit: (charity: Charity) => void;
   onDelete: (id: number) => void;
+  isToggling?: boolean; // Add a loading/toggling state
+  togglingId?: number | null; // Add the ID of the item currently being toggled
 }
 
-const CharitiesTable: React.FC<CharitiesTableProps> = ({ charities, onToggleStatus, onEdit, onDelete }) => {
+const CharitiesTable: React.FC<CharitiesTableProps> = ({ charities, onToggleStatus, onEdit, onDelete, isToggling, togglingId }) => {
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
@@ -53,10 +55,16 @@ const CharitiesTable: React.FC<CharitiesTableProps> = ({ charities, onToggleStat
                     <Edit className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => onToggleStatus(charity.id)}
-                    className="px-3 py-2 text-sm font-medium text-white bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                      onClick={() => onToggleStatus(charity.id)}
+                      // ⬇️ Disable the button if the overall component is loading OR if THIS specific item is loading
+                      disabled={isToggling || togglingId === charity.id} 
+                      className="px-3 py-2 text-sm font-medium text-white bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                   >
-                    {charity.active ? <X className='text-red-600 w-4 h-4' /> : <Check className='text-green-600 w-4 h-4' />}
+                      {/* Optional: Show a spinner if the specific item is loading */}
+                      {togglingId === charity.id 
+                          ? <span className='animate-spin'>⚙️</span> 
+                          : (charity.active ? <X className='text-red-600 w-4 h-4' /> : <Check className='text-green-600 w-4 h-4' />)
+                      }
                   </button>
                   <button
                     onClick={() => onDelete(charity.id)}
