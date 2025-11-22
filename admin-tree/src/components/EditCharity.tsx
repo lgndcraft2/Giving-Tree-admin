@@ -28,7 +28,17 @@ const EditCharityModal: React.FC<EditCharityModalProps> = ({ charity, wishes, on
     website: charity.website || '',
     logo_url: charity.logo_url || '',
     image_url: charity.image_url || '',
-    wishes: wishes.map((wish, wish.id) => ({ id: wish.id, title: '', description: '', quantity: 0, unit_price: 0, total_price: 0 }));
+    wishes: wishes.map((wish) => ({
+        // Map fields based on the common WishItem interface structure
+        id: wish.id, 
+        title: wish.name,
+        description: wish.description,
+        quantity: wish.quantity,
+        unit_price: wish.unit_price,
+        // The total_price for editing should reflect the base cost (quantity * unit_price)
+        total_price: wish.quantity * wish.unit_price, 
+        // Note: Fields like 'current_price' are read-only for donation tracking and should not be in the editable form structure.
+    })),
   });
 
   const handleInputChange = (field: keyof Omit<CharityForm, 'wishes'>, value: string) => {
@@ -180,7 +190,7 @@ const EditCharityModal: React.FC<EditCharityModalProps> = ({ charity, wishes, on
                       type="text"
                       required
                       value={wish.title}
-                      onChange={(e) => handleWishChange(index, 'title', e.target.value)}
+                      onChange={(e) => handleWishChange(index, 'name', e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       placeholder="Enter wish title"
                     />

@@ -3,7 +3,7 @@ import { CheckCircle, XCircle } from 'lucide-react'; // Import icons for status
 
 export interface Wish {
   id: number;
-  title: string;
+  name: string;
   description: string;
   unit_price: number;
   quantity: number;
@@ -42,7 +42,7 @@ const WishesTable: React.FC<WishesTableProps> = ({ wishes }) => {
         
             {/* Title & Description Column */}
               <td className="py-4 px-4 text-sm text-gray-900 font-medium">
-                {wish.title}
+                {wish.name}
                 <p className="text-xs text-gray-500 truncate max-w-xs mt-1">{wish.description}</p>
               </td>
         
