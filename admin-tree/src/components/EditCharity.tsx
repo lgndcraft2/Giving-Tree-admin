@@ -11,7 +11,7 @@ interface Charity {
   logo_url?: string;
   image_url?: string;
   wish_length: number;
-  status: boolean;
+  active: boolean;
 }
 
 interface EditCharityModalProps {
@@ -36,7 +36,7 @@ const EditCharityModal: React.FC<EditCharityModalProps> = ({ charity, wishes, on
     wishes: wishes.map((wish) => ({
         // Map fields based on the common WishItem interface structure
         id: wish.id, 
-        title: wish.name,
+        name: wish.name,
         description: wish.description,
         quantity: wish.quantity,
         unit_price: wish.unit_price,
@@ -309,8 +309,8 @@ const EditCharityModal: React.FC<EditCharityModalProps> = ({ charity, wishes, on
                     <input
                       type="text"
                       required
-                      value={wish.title}
-                      onChange={(e) => handleWishChange(index, 'title', e.target.value)}
+                      value={wish.name}
+                      onChange={(e) => handleWishChange(index, 'name', e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       placeholder="Enter wish title"
                     />

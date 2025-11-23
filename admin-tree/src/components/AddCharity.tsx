@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, Loader2, AlertTriangle } from 'lucide-react';
-
-export interface WishItem {
-  title: string;
-  description: string;
-  quantity: number;
-  unit_price: number;
-  total_price: number;
-}
+import type { Wish } from './WishTable';
 
 export interface CharityForm {
   name: string;
@@ -15,7 +8,7 @@ export interface CharityForm {
   website: string;
   logo_url: string;
   image_url: string;
-  wishes: WishItem[];
+  wishes: Wish[];
 }
 
 interface AddCharityFormProps {
@@ -36,9 +29,9 @@ const AddCharityForm: React.FC<AddCharityFormProps> = ({ onSubmit }) => {
     logo_url: '',
     image_url: '',
     wishes: [
-      { title: '', description: '', quantity: 0, unit_price: 0, total_price: 0 },
-      { title: '', description: '', quantity: 0, unit_price: 0, total_price: 0 },
-      { title: '', description: '', quantity: 0, unit_price: 0, total_price: 0 },
+      { name: '', description: '', quantity: 0, unit_price: 0, total_price: 0 },
+      { name: '', description: '', quantity: 0, unit_price: 0, total_price: 0 },
+      { name: '', description: '', quantity: 0, unit_price: 0, total_price: 0 },
     ]
   });
 
@@ -50,9 +43,9 @@ const AddCharityForm: React.FC<AddCharityFormProps> = ({ onSubmit }) => {
       logo_url: '',
       image_url: '',
       wishes: [
-        { title: '', description: '', quantity: 0, unit_price: 0, total_price: 0 },
-        { title: '', description: '', quantity: 0, unit_price: 0, total_price: 0 },
-        { title: '', description: '', quantity: 0, unit_price: 0, total_price: 0 },
+        { name: '', description: '', quantity: 0, unit_price: 0, total_price: 0 },
+        { name: '', description: '', quantity: 0, unit_price: 0, total_price: 0 },
+        { name: '', description: '', quantity: 0, unit_price: 0, total_price: 0 },
       ]
     });
   };
@@ -63,7 +56,7 @@ const AddCharityForm: React.FC<AddCharityFormProps> = ({ onSubmit }) => {
   };
 
  
-  const handleWishChange = (index: number, field: keyof WishItem, value: string | number) => {
+  const handleWishChange = (index: number, field: keyof Wish, value: string | number) => {
     const updatedWishes = [...formData.wishes];
     const rawValue = typeof value === 'string' ? value : value;
     let numericValue: number;
@@ -75,7 +68,7 @@ const AddCharityForm: React.FC<AddCharityFormProps> = ({ onSubmit }) => {
         numericValue = Number(rawValue);
         updatedWishes[index] = { ...updatedWishes[index], unit_price: numericValue };
     } else {
-        // Handle title and description (string values)
+        // Handle name and description (string values)
         updatedWishes[index] = { ...updatedWishes[index], [field]: rawValue };
     }
     
@@ -104,7 +97,7 @@ const AddCharityForm: React.FC<AddCharityFormProps> = ({ onSubmit }) => {
     }
     setFormData({
       ...formData,
-      wishes: [...formData.wishes, { title: '', description: '', quantity: 0, unit_price: 0, total_price: 0 }]
+      wishes: [...formData.wishes, { name: '', description: '', quantity: 0, unit_price: 0, total_price: 0 }]
     });
     setError(null);
   };
@@ -138,8 +131,8 @@ const AddCharityForm: React.FC<AddCharityFormProps> = ({ onSubmit }) => {
     // Validate each wish has required fields and correct values
     for (let i = 0; i < formData.wishes.length; i++) {
       const wish = formData.wishes[i];
-      if (!wish.title.trim()) {
-        setError(`Wish ${i + 1}: Title is required.`);
+      if (!wish.name.trim()) {
+        setError(`Wish ${i + 1}: name is required.`);
         return false;
       }
       if (!wish.description.trim()) {
@@ -179,7 +172,7 @@ const AddCharityForm: React.FC<AddCharityFormProps> = ({ onSubmit }) => {
         logo_url: formData.logo_url.trim(),
         image_url: formData.image_url.trim(),
         wishes: formData.wishes.map(wish => ({
-          title: wish.title.trim(),
+          name: wish.name.trim(),
           description: wish.description.trim(),
           quantity: Number(wish.quantity),
           unit_price: Number(wish.unit_price),
@@ -349,14 +342,14 @@ const AddCharityForm: React.FC<AddCharityFormProps> = ({ onSubmit }) => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">name</label>
                 <input
                   type="text"
                   required
-                  value={wish.title}
-                  onChange={(e) => handleWishChange(index, 'title', e.target.value)}
+                  value={wish.name}
+                  onChange={(e) => handleWishChange(index, 'name', e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Enter wish title"
+                  placeholder="Enter wish name"
                   disabled={isSubmitting}
                 />
               </div>

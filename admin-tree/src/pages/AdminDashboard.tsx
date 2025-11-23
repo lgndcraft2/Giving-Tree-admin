@@ -9,6 +9,7 @@ import type { CharityForm } from "../components/AddCharity";
 import AddCharityForm from "../components/AddCharity";
 import EditCharityModal from "../components/EditCharity";
 import EmptyPlaceholder from "../components/EmptyPlaceholder";
+import type { Wish } from "../components/WishTable";
 
 interface Charity {
   id: number;
@@ -19,18 +20,6 @@ interface Charity {
   image_url?: string;
   wish_length: number;
   active: boolean;
-}
-
-interface Wish {
-  id: number;
-  title: string;
-  description: string;
-  unitPrice: number;
-  quantity: number;
-  currentDonations: number;
-  requiredDonations: number;
-  charityName: string;
-  fulfilled: boolean;
 }
 
 interface Donation {
@@ -194,7 +183,6 @@ const AdminDashboard: React.FC = () => {
         setError(errorMessage);
         console.error("Toggle Error:", err);
     } finally {
-        setIsLoading(false);
         setTogglingId(null); // Re-enable the button
     }
   };
@@ -346,7 +334,7 @@ const AdminDashboard: React.FC = () => {
       {editingCharity && (
         <EditCharityModal
           charity={editingCharity}
-          wishes={wishes}
+          wishes={wishes.filter(w => w.charity_name === editingCharity.name)}
           onClose={() => setEditingCharity(null)}
           onSave={handleSaveCharity}
         />
