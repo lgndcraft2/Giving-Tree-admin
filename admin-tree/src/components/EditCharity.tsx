@@ -81,7 +81,7 @@ const EditCharityModal: React.FC<EditCharityModalProps> = ({ charity, wishes, on
     
     setFormData({ ...formData, wishes: updatedWishes });
   };
-  
+
   const addWishItem = () => {
     setError(null); // Clear previous errors
     if (formData.wishes.length >= MAX_WISHES) {
@@ -134,7 +134,7 @@ const EditCharityModal: React.FC<EditCharityModalProps> = ({ charity, wishes, on
     try {
         setIsSaving(true);
         const response = await fetch('http://127.0.0.1:5000/adders/edit-charity', {
-            method: 'POST',
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },

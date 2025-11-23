@@ -70,7 +70,7 @@ def add_charity():
     return jsonify({'success': True, 'message': f'Charity {name} added successfully'}), 201
 
 
-@adders.route('/edit-charity', methods=['POST']) # Use PUT for editing (better REST practice)
+@adders.route('/edit-charity', methods=['PUT']) # Use PUT for editing (better REST practice)
 #@jwt_required() # 🚨 FIX: Ensure user is authenticated
 def edit_charity():
     data = request.get_json(silent=True)
@@ -128,7 +128,7 @@ def edit_charity():
         wish_id = wish_data.get('id')
         
         # --- Wish Data Integrity Validation ---
-        wish_name = wish_data.get('title') # Frontend uses 'title'
+        wish_name = wish_data.get('name') # Frontend uses 'title'
         wish_desc = wish_data.get('description')
         quantity = wish_data.get('quantity')
         unit_price = wish_data.get('unit_price')
