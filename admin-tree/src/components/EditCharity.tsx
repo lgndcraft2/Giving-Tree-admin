@@ -26,6 +26,7 @@ const EditCharityModal: React.FC<EditCharityModalProps> = ({ charity, wishes, on
   const MAX_WISHES = 5;
 
   const [error, setError] = useState<string | null>(null); 
+  const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState<CharityForm>({
     name: charity.name,
     description: charity.description || '',
@@ -118,12 +119,55 @@ const EditCharityModal: React.FC<EditCharityModalProps> = ({ charity, wishes, on
     return true;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      if (validateForm()) {
-          onSave(charity.id, formData);
-          // Do not close the modal here; it should be closed after a successful API save
-      }
+  const charityUpdate = async (id: number, data: CharityForm) => {
+    try {
+        setIsSaving(true);
+        const response = await fetch('http://127.0.0.1:5000/adders/edit-charity', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id, ...data }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to update charity');
+        }
+        return result;
+    } catch (error: any) {
+        throw new Error(error.message || 'An unexpected error occurred');
+    } finally {
+        setIsSaving(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => { // 💡 Make function async
+    e.preventDefault();
+    setError(null); // Clear errors before submission
+
+    if (!validateForm()) {
+        return;
+    }
+
+    setIsSaving(true);
+    setError(null);
+
+    try {
+        // Await the API call
+        await charityUpdate(charity.id, formData); 
+        
+        // 1. Update the parent state (This tells the Admin Dashboard to re-fetch or update its list)
+        onSave(charity.id, formData); 
+        
+        // 2. Close the modal (Only after successful API save and local state update)
+        onClose(); 
+
+    } catch (err: any) {
+        // Handle network/server errors
+        setError(err.message);
+    } finally {
+        setIsSaving(false);
+    }
   };
 
   return (
@@ -210,26 +254,41 @@ const EditCharityModal: React.FC<EditCharityModalProps> = ({ charity, wishes, on
               <button
                 type="button"
                 onClick={addWishItem}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
-              >
+                disabled={formData.wishes.length >= MAX_WISHES}
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    formData.wishes.length >= MAX_WISHES 
+                        ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                        : 'text-green-600 bg-green-50 hover:bg-green-100'
+                }`}
+            >
                 <Plus className="w-4 h-4" />
                 Add Wish
-              </button>
+            </button>
             </div>
-
+            {error && (
+                <div className="p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg">
+                    {error}
+                </div>
+            )}
+            
             {formData.wishes.map((wish, index) => (
               <div key={index} className="p-4 border border-gray-200 rounded-lg space-y-4 bg-gray-50">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-semibold text-gray-700">Wish {index + 1}</h4>
-                  {formData.wishes.length > 1 && (
+                  {formData.wishes.length > MIN_WISHES && (
                     <button
-                      type="button"
-                      onClick={() => removeWishItem(index)}
-                      className="text-red-600 hover:text-red-700"
+                        type="button"
+                        onClick={() => removeWishItem(index)}
+                        disabled={formData.wishes.length <= MIN_WISHES}
+                        className={`transition-colors ${
+                            formData.wishes.length <= MIN_WISHES
+                                ? 'text-gray-300 cursor-not-allowed'
+                                : 'text-red-600 hover:text-red-700'
+                        }`}
                     >
-                      <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4" />
                     </button>
-                  )}
+                )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -239,7 +298,7 @@ const EditCharityModal: React.FC<EditCharityModalProps> = ({ charity, wishes, on
                       type="text"
                       required
                       value={wish.title}
-                      onChange={(e) => handleWishChange(index, 'name', e.target.value)}
+                      onChange={(e) => handleWishChange(index, 'title', e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                       placeholder="Enter wish title"
                     />
@@ -310,10 +369,15 @@ const EditCharityModal: React.FC<EditCharityModalProps> = ({ charity, wishes, on
             </button>
             <button
               type="submit"
-              className="px-6 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
-            >
-              Save Changes
-            </button>
+              disabled={isSaving} // 💡 Disable during save
+              className={`px-6 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
+                  isSaving
+                      ? 'bg-green-400 cursor-not-allowed'
+                      : 'bg-green-600 hover:bg-green-700'
+              }`}
+          >
+              {isSaving ? 'Saving...' : 'Save Changes'}
+          </button>
           </div>
         </form>
       </div>

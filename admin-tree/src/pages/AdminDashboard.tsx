@@ -18,7 +18,7 @@ interface Charity {
   logo_url?: string;
   image_url?: string;
   wish_length: number;
-  status: boolean;
+  active: boolean;
 }
 
 interface Wish {
