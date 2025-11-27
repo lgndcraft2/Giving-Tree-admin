@@ -18,7 +18,7 @@ interface AddCharityFormProps {
   onSubmit: (charity: CharityForm) => void;
 }
 
-const MIN_WISHES = 3;
+const MIN_WISHES = 1;
 const MAX_WISHES = 5;
 
 const AddCharityForm: React.FC<AddCharityFormProps> = ({ onSubmit }) => {
