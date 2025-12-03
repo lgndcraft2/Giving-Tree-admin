@@ -10,7 +10,7 @@ const LoginForm: React.FC = () => {
         e.preventDefault();
         console.log("PLEASE NA")
 
-        const response = await fetch('http://127.0.0.1:5000/auth/login', {
+        const response = await fetch('https://giving-tree-admin.onrender.com/auth/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

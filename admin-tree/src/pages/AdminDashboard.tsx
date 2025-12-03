@@ -40,7 +40,7 @@ const AdminDashboard: React.FC = () => {
     // Fetch charities from backend API
     const fetchCharities = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:5000/getters/charities-admin', {
+        const response = await fetch('https://giving-tree-admin.onrender.com/getters/charities-admin', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -58,7 +58,7 @@ const AdminDashboard: React.FC = () => {
     // Fetch wishes from backend API
     const fetchWishes = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:5000/getters/wishes', {
+        const response = await fetch('https://giving-tree-admin.onrender.com/getters/wishes', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ const AdminDashboard: React.FC = () => {
 
     const fetchDonations = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:5000/getters/payments', {
+        const response = await fetch('https://giving-tree-admin.onrender.com/getters/payments', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -128,7 +128,7 @@ const AdminDashboard: React.FC = () => {
 
     try {
         // 2. Perform the API call (PUT request)
-        const response = await fetch(`http://127.0.0.1:5000/changers/charity/${id}/toggle-status`, {
+        const response = await fetch(`https://giving-tree-admin.onrender.com/changers/charity/${id}/toggle-status`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

@@ -11,7 +11,7 @@ function App() {
     const amount = 45000;
     const id = 9;
 
-    const response = await fetch('http://127.0.0.1:5000/payments/api/initialize-payment', {
+    const response = await fetch('https://giving-tree-admin.onrender.com/payments/api/initialize-payment', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({

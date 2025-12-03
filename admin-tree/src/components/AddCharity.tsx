@@ -180,7 +180,7 @@ const AddCharityForm: React.FC<AddCharityFormProps> = ({ onSubmit }) => {
       };
 
       // API call (using the endpoint provided in your original code)
-      const response = await fetch('http://127.0.0.1:5000/adders/charity', {
+      const response = await fetch('https://giving-tree-admin.onrender.com/adders/charity', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -34,7 +34,7 @@ def initialize_payments():
         payload = {
             "email": email,
             "amount": amount_kobo,
-            "callback_url": "http://127.0.0.1:5000/payments/payment_callback",
+            "callback_url": "https://giving-tree-admin.onrender.com/payments/payment_callback",
             "metadata": {
                 "item_id": item_id,
                 "quantity": quantity,

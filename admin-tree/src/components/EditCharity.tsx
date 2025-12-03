@@ -133,7 +133,7 @@ const EditCharityModal: React.FC<EditCharityModalProps> = ({ charity, wishes, on
   const charityUpdate = async (id: number, data: CharityForm) => {
     try {
         setIsSaving(true);
-        const response = await fetch('http://127.0.0.1:5000/adders/edit-charity', {
+        const response = await fetch('https://giving-tree-admin.onrender.com/adders/edit-charity', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
