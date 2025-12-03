@@ -1,11 +1,11 @@
 from flask import Blueprint, jsonify, request
 from ..extensions import db, jwt
-from ..models import User, Charities, Wishes
+from ..models import User, Charities, Wishes, Payments
 from flask_jwt_extended import jwt_required
 
 adders = Blueprint('adders', __name__, url_prefix='/adders')
 
-MIN_WISHES = 3
+MIN_WISHES = 1
 MAX_WISHES = 5
 
 @adders.route('/charity', methods=['POST'])
@@ -14,12 +14,11 @@ def add_charity():
     name = data.get('name')
     description = data.get('description')
     website = data.get('website')
-    logo_url = data.get('logo_url')
     image_url = data.get('image_url')
     active = data.get('active', False)
 
-    if not all([name, description, website, logo_url, image_url]):
-        return jsonify({'success': False, 'message': 'Missing required charity details (name, description, website, logo_url, image_url)'}), 400
+    if not all([name, description, website, image_url]):
+        return jsonify({'success': False, 'message': 'Missing required charity details (name, description, website, image_url)'}), 400
     
     wishes_data = data.get('wishes', [])
     num_wishes = len(wishes_data)
@@ -31,7 +30,6 @@ def add_charity():
         name=name.strip(),
         description=description.strip(),
         website=website.strip(),
-        logo_url=logo_url.strip(),
         image_url=image_url.strip(), 
         active=data.get('active', False)
     )
@@ -39,10 +37,11 @@ def add_charity():
     db.session.flush()  # Flush to get the charity ID
 
     for i, wish in enumerate(wishes_data):
-        wish_name = wish.get('title') 
+        wish_name = wish.get('name') 
         wish_desc = wish.get('description')
         quantity = wish.get('quantity')
         unit_price = wish.get('unit_price')
+        total_price = wish.get('total_price', 0.0)
 
         # Deep validation for required wish fields and values
         if not all([wish_name, wish_desc]):
@@ -62,7 +61,7 @@ def add_charity():
             unit_price=unit_price,
             quantity=quantity,
             # Ensure total_price is passed as a number.
-            total_price=wish.get('total_price', 0.0), 
+            total_price=total_price, 
             fulfilled=wish.get('fulfilled', False)
         )
         db.session.add(new_wish)
@@ -97,17 +96,15 @@ def edit_charity():
     new_name = data.get('name', charity.name).strip()
     new_description = data.get('description', charity.description).strip()
     new_website = data.get('website', charity.website).strip()
-    new_logo_url = data.get('logo_url', charity.logo_url).strip()
     new_image_url = data.get('image_url', charity.image_url).strip()
 
     # Basic validation for required fields
-    if not all([new_name, new_description, new_website, new_logo_url, new_image_url]):
+    if not all([new_name, new_description, new_website, new_image_url]):
         return jsonify({'success': False, 'message': 'All main charity fields (name, description, website, URLs) are required and cannot be empty.'}), 400
 
     charity.name = new_name
     charity.description = new_description
     charity.website = new_website
-    charity.logo_url = new_logo_url
     charity.image_url = new_image_url
     charity.active = data.get('active', charity.active) # 'active' toggle is fine here
 
@@ -128,7 +125,7 @@ def edit_charity():
         wish_id = wish_data.get('id')
         
         # --- Wish Data Integrity Validation ---
-        wish_name = wish_data.get('name') # Frontend uses 'title'
+        wish_name = wish_data.get('name') 
         wish_desc = wish_data.get('description')
         quantity = wish_data.get('quantity')
         unit_price = wish_data.get('unit_price')
@@ -172,8 +169,12 @@ def edit_charity():
     # 6. Delete or Mark Missing Wishes (Cleanup)
     wishes_to_delete_ids = existing_wish_ids - incoming_wish_ids
     if wishes_to_delete_ids:
-        # Better: Mark them as inactive/archived instead of deleting if they have associated donation data.
-        # For simplicity (since the original code intended deletion):
+        # Prevent deleting wishes that already have payments associated with them.
+        linked_payment_wish_ids = {r[0] for r in db.session.query(Payments.wish_id).filter(Payments.wish_id.in_(wishes_to_delete_ids)).distinct().all()}
+        if linked_payment_wish_ids:
+            return jsonify({'success': False, 'message': f'Cannot delete wishes with existing payments: {sorted(list(linked_payment_wish_ids))}'}), 400
+
+        # Safe to delete wishes with no payments
         Wishes.query.filter(Wishes.id.in_(wishes_to_delete_ids)).delete(synchronize_session='fetch')
     
     # 7. Final Commit

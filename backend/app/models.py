@@ -19,7 +19,6 @@ class Charities(db.Model):
     name = db.Column(db.String(150), unique=True, nullable=False)
     description = db.Column(db.Text, nullable=True)
     website = db.Column(db.String(200), nullable=True)
-    logo_url = db.Column(db.String(200), nullable=True)
     image_url = db.Column(db.String(200), nullable=True)
     active = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
@@ -43,6 +42,15 @@ class Wishes(db.Model):
 
     charity = db.relationship('Charities', backref=db.backref('wishes', lazy=True))
 
+    @staticmethod
+    def update_current_price(wish_id, amount):
+        wish = Wishes.query.get(wish_id)
+        if wish:
+            wish.current_price += amount
+            if wish.current_price >= wish.total_price:
+                wish.fulfilled = True
+            db.session.commit()
+
     def __repr__(self):
         return f'<Wishes {self.name} for Charity ID {self.charity_id}>'
     
@@ -51,9 +59,10 @@ class Payments(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     wish_id = db.Column(db.Integer, db.ForeignKey('wishes.id'), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    unit_price = db.Column(db.Float, nullable=False)
     amount = db.Column(db.Float, nullable=False)
     payment_date = db.Column(db.DateTime, server_default=db.func.now())
-    donor_name = db.Column(db.String(150), nullable=True)
     donor_email = db.Column(db.String(150), nullable=True)
 
     wish = db.relationship('Wishes', backref=db.backref('payments', lazy=True))

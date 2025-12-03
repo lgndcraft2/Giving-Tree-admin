@@ -10,6 +10,7 @@ import AddCharityForm from "../components/AddCharity";
 import EditCharityModal from "../components/EditCharity";
 import EmptyPlaceholder from "../components/EmptyPlaceholder";
 import type { Wish } from "../components/WishTable";
+import type { Donation } from "../components/DonationTable";
 
 interface Charity {
   id: number;
@@ -22,16 +23,6 @@ interface Charity {
   active: boolean;
 }
 
-interface Donation {
-  id: number;
-  accountNumber: string;
-  charityName: string;
-  wishName: string;
-  amount: number;
-  quantity: number;
-  date: string;
-}
-
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
     "charities" | "wishes" | "donations" | "add-charity"
@@ -39,6 +30,7 @@ const AdminDashboard: React.FC = () => {
   const [editingCharity, setEditingCharity] = useState<Charity | null>(null);
   const [charities, setCharities] = useState<Charity[]>([]);
   const [wishes, setWishes] = useState<Wish[]>([]);
+  const [donations, setDonations] = useState<Donation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [togglingId, setTogglingId] = useState<number | null>(null); // To disable a specific button
@@ -84,48 +76,30 @@ const AdminDashboard: React.FC = () => {
       }
     };
 
+    const fetchDonations = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:5000/getters/payments', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        const data = await response.json();
+        if (data.success) {
+          setDonations(data.payments);
+          console.log(data.payments);
+        }
+      } catch (error) {
+        console.error('Error fetching donations:', error);
+        setError('Error fetching donations');
+      }
+    };
+
     fetchCharities();
     fetchWishes();
+    fetchDonations();
   }, []);
 
-  const donations: Donation[] = [
-    {
-      id: 1,
-      accountNumber: "ACC-10234",
-      charityName: "Hope Foundation",
-      wishName: "Winter Clothing Drive",
-      amount: 500,
-      quantity: 2,
-      date: "2025-11-15",
-    },
-    {
-      id: 2,
-      accountNumber: "ACC-10567",
-      charityName: "Education For All",
-      wishName: "School Supplies for 100 Students",
-      amount: 1500,
-      quantity: 5,
-      date: "2025-11-14",
-    },
-    {
-      id: 3,
-      accountNumber: "ACC-10892",
-      charityName: "Medical Aid Society",
-      wishName: "Medical Equipment Fund",
-      amount: 2000,
-      quantity: 1,
-      date: "2025-11-13",
-    },
-    {
-      id: 4,
-      accountNumber: "ACC-10123",
-      charityName: "Children's Relief Fund",
-      wishName: "Food Security Program",
-      amount: 750,
-      quantity: 3,
-      date: "2025-11-12",
-    },
-  ];
 
   const activeCharitiesCount = charities.filter(
     (c) => c.active
@@ -211,7 +185,6 @@ const AdminDashboard: React.FC = () => {
               name: data.name,
               description: data.description,
               website: data.website,
-              logo_url: data.logo_url,
               image_url: data.image_url,
             }
           : charity

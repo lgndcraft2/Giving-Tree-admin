@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify
 from ..extensions import db, jwt
-from ..models import User, Charities, Wishes
+from ..models import Payments, User, Charities, Wishes
 from flask_jwt_extended import jwt_required
 
 getters_bp = Blueprint('getters', __name__, url_prefix='/getters')
@@ -13,10 +13,9 @@ def get_charities():
         'name': charity.name,
         'description': charity.description,
         'website': charity.website,
-        'logo_url': charity.logo_url,
-        'img_url': charity.img_url,
+        'image_url': charity.image_url,
         'active': charity.active,
-        'created_at': charity.created_at
+        'created_at': charity.created_at.isoformat() if getattr(charity, 'created_at', None) else None
     } for charity in charities]
     return jsonify({'success': True, 'charities': charities_list}), 200
 
@@ -33,11 +32,10 @@ def get_charities_admin():
         'name': charity.name,
         'description': charity.description,
         'website': charity.website,
-        'logo_url': charity.logo_url,
         'image_url': charity.image_url,
         'active': charity.active,
         'wish_length': charity.wish_length,
-        'created_at': charity.created_at
+        'created_at': charity.created_at.isoformat() if getattr(charity, 'created_at', None) else None
     } for charity in charities]
     return jsonify({'success': True, 'charities': charities_list}), 200
 
@@ -59,6 +57,28 @@ def get_wishes():
         'total_price': wish.total_prize,
         'charity_name': wish.charity_name,
         'fulfilled': wish.fulfilled,
-        'created_at': wish.created_at
+        'created_at': wish.created_at.isoformat() if getattr(wish, 'created_at', None) else None
     } for wish in wishes]
     return jsonify({'success': True, 'wishes': wishes_list}), 200
+
+@getters_bp.route('/payments', methods=['GET'])
+def get_payments():
+    payments = Payments.query.all()
+    payments_list = []
+    for payment in payments:
+        wish = Wishes.query.filter_by(id=payment.wish_id).first()
+        charity = Charities.query.filter_by(id=wish.charity_id).first() if wish else None
+
+        payments_list.append({
+            'id': payment.id,
+            'wish_id': payment.wish_id,
+            'wish_name': wish.name if wish else "Unknown Wish",
+            'charity_name': charity.name if charity else "Unknown Charity",
+            'quantity': payment.quantity,
+            'unit_price': payment.unit_price,
+            'amount': payment.amount,
+            'payment_date': payment.payment_date.isoformat() if getattr(payment, 'payment_date', None) else None,
+            'donor_email': payment.donor_email
+        })
+
+    return jsonify({'success': True, 'payments': payments_list}), 200

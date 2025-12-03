@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import type { CharityForm } from './AddCharity';
 import type { Wish } from "./WishTable";
+import ImageUpload from './ImageUpload';
+
 
 interface Charity {
   id: number;
   name: string;
   description?: string;
   website?: string;
-  logo_url?: string;
   image_url?: string;
   wish_length: number;
   active: boolean;
@@ -22,7 +23,7 @@ interface EditCharityModalProps {
 }
 
 const EditCharityModal: React.FC<EditCharityModalProps> = ({ charity, wishes, onClose, onSave }) => {
-  const MIN_WISHES = 3; 
+  const MIN_WISHES = 1; 
   const MAX_WISHES = 5;
 
   const [error, setError] = useState<string | null>(null); 
@@ -31,7 +32,6 @@ const EditCharityModal: React.FC<EditCharityModalProps> = ({ charity, wishes, on
     name: charity.name,
     description: charity.description || '',
     website: charity.website || '',
-    logo_url: charity.logo_url || '',
     image_url: charity.image_url || '',
     wishes: wishes.map((wish) => ({
         // Map fields based on the common WishItem interface structure
@@ -236,20 +236,17 @@ const EditCharityModal: React.FC<EditCharityModalProps> = ({ charity, wishes, on
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Image</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                      handleInputChange('image_url', reader.result as string);
-                    };
-                    reader.readAsDataURL(file);
-                  }
-                }}
-                className="mt-2"
+              {formData.image_url && (
+                <div className="mb-2">
+                  <img 
+                    src={formData.image_url} 
+                    alt="Current" 
+                    className="w-20 h-20 object-cover rounded-md border"
+                  />
+                </div>
+              )}
+              <ImageUpload
+                onUploadSuccess={(url) => handleInputChange('image_url', url)}
               />
             </div>
           </div>

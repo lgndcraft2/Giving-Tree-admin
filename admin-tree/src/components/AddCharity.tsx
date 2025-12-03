@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, Loader2, AlertTriangle } from 'lucide-react';
 import type { Wish } from './WishTable';
-
+import ImageUpload from './ImageUpload';
 
 type WishInput = Omit<Wish, 'id' | 'charity_name' | 'fulfilled' | 'current_price'>;
 
@@ -9,7 +9,6 @@ export interface CharityForm {
   name: string;
   description: string;
   website: string;
-  logo_url: string;
   image_url: string;
   wishes: WishInput[];
 }
@@ -29,7 +28,6 @@ const AddCharityForm: React.FC<AddCharityFormProps> = ({ onSubmit }) => {
     name: '',
     description: '',
     website: '',
-    logo_url: '',
     image_url: '',
     wishes: [
       { name: '', description: '', quantity: 0, unit_price: 0, total_price: 0 },
@@ -43,7 +41,6 @@ const AddCharityForm: React.FC<AddCharityFormProps> = ({ onSubmit }) => {
       name: '',
       description: '',
       website: '',
-      logo_url: '',
       image_url: '',
       wishes: [
         { name: '', description: '', quantity: 0, unit_price: 0, total_price: 0 },
@@ -120,7 +117,7 @@ const AddCharityForm: React.FC<AddCharityFormProps> = ({ onSubmit }) => {
    */
   const validateForm = (): boolean => {
     // Check primary charity fields
-    if (!formData.name.trim() || !formData.description.trim() || !formData.website.trim() || !formData.logo_url.trim() || !formData.image_url.trim()) {
+    if (!formData.name.trim() || !formData.description.trim() || !formData.website.trim() || !formData.image_url.trim()) {
       setError('All Charity Details fields are required.');
       return false;
     }
@@ -172,7 +169,6 @@ const AddCharityForm: React.FC<AddCharityFormProps> = ({ onSubmit }) => {
         name: formData.name.trim(),
         description: formData.description.trim(),
         website: formData.website.trim(),
-        logo_url: formData.logo_url.trim(),
         image_url: formData.image_url.trim(),
         wishes: formData.wishes.map(wish => ({
           name: wish.name.trim(),
@@ -276,7 +272,7 @@ const AddCharityForm: React.FC<AddCharityFormProps> = ({ onSubmit }) => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Image</label>
-          <input
+          {/* <input
             type="file"
             accept="image/*"
             onChange={(e) => {
@@ -288,6 +284,10 @@ const AddCharityForm: React.FC<AddCharityFormProps> = ({ onSubmit }) => {
             }}
             className="w-full"
             disabled={isSubmitting}
+          /> */}
+          <ImageUpload 
+            currentImage={formData.image_url} // <--- Pass the data here!
+            onUploadSuccess={(url) => handleInputChange('image_url', url)} 
           />
         </div>
       </div>
