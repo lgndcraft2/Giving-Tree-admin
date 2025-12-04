@@ -23,8 +23,19 @@ def initialize_payments():
         unit_price = data.get('unit_price')
         amount = data.get('amount')
         item_id = data.get('id')
+        
+        try:
+            item_id = int(item_id)
+        except (ValueError, TypeError):
+            return jsonify({"status": False, "message": "Invalid item ID"}), 400
 
-        if not all([email, amount, item_id]):
+        item_id = data.get('id')
+
+        # Coerce item_id to int and validate required fields
+        try:
+            item_id = int(item_id)
+        except (TypeError, ValueError):
+            return jsonify({"status": False, "message": "Invalid item ID"}), 400
             return jsonify({"status": False, "message": "Missing details"}), 400
 
         amount_kobo = int(float(amount) * 100)
@@ -49,10 +60,19 @@ def initialize_payments():
             "Content-Type": "application/json"
         }
 
-
-        response = requests.post(PAYSTACK_INIT_URL, json=payload, headers=headers)
-        response_data = response.json()
-        #print(response_data)
+        wish = Wishes.query.get(item_id)
+        if not wish:
+            return jsonify({"status": False, "message": "Invalid item ID"}), 400
+        else:
+            print(f"Found Wish: {wish}")
+            response = requests.post(PAYSTACK_INIT_URL, json=payload, headers=headers)
+            response_data = response.json()
+            try:
+                response = requests.post(PAYSTACK_INIT_URL, json=payload, headers=headers, timeout=10)
+                response_data = response.json()
+            except requests.RequestException as e:
+                print(f"Paystack init request failed: {e}")
+                return jsonify({"status": False, "message": f"Payment gateway error: {e}"}), 502
 
         if response.status_code == 200 and response_data['status']:
             return jsonify({
@@ -102,7 +122,7 @@ def payment_callback():
         # 3. Retrieve the item_id from metadata
         # Note: Paystack returns metadata inside the 'data' object
         data = verify_data['data']
-        metadata = verify_data['data']['metadata']
+        metadata = data.get('metadata') if isinstance(data, dict) else None
 
         paid_amount = safe_float(data.get('amount')) / 100  # Convert back to Naira
 
@@ -121,9 +141,9 @@ def payment_callback():
         if not paid_email:
             paid_email = "unknown@example.com"  # Fallback email
         
-        paid_item_id = safe_int(metadata.get('item_id'), default=None) # Keep None if ID is missing
-        paid_quantity = safe_int(metadata.get('quantity'), default=1)
-        paid_unit_price = safe_float(metadata.get('unit_price'), default=0.0)
+        paid_item_id = safe_int(metadata.get('item_id') if isinstance(metadata, dict) else None, default=None) # Keep None if ID is missing
+        paid_quantity = safe_int(metadata.get('quantity') if isinstance(metadata, dict) else None, default=1)
+        paid_unit_price = safe_float(metadata.get('unit_price') if isinstance(metadata, dict) else None, default=0.0)
 
         print(f"Payment Callback Data: item_id={paid_item_id}, quantity={paid_quantity}, unit_price={paid_unit_price}, amount={paid_amount}, email={paid_email}")
 
